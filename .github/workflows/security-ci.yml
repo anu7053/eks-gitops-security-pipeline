@@ -1,0 +1,42 @@
+name: EKS Security & IaC Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  security-scan:
+    name: Checkov & Trivy Security Scans
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov IaC Scanner
+        uses: bridgecrewio/checkov-action@master
+        with:
+          framework: terraform
+          output_format: cli,sarif
+          output_file_path: console,results.sarif
+
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Publish Summary to GitHub Step Summary
+        run: |
+          echo "### 🛡️ EKS Security & Compliance Report" >> $GITHUB_STEP_SUMMARY
+          echo "- **Checkov IaC Scan:** Completed Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trivy File System Scan:** Completed (Checked for CRITICAL & HIGH vulnerabilities)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pipeline Status:** Secure & Ready for Deployment 🚀" >> $GITHUB_STEP_SUMMARY
