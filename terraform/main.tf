@@ -32,6 +32,27 @@ resource "aws_kms_key" "eks_secrets" {
   enable_key_rotation     = true
 }
 
+# Explicit KMS Key Policy for CKV2_AWS_64 compliance
+resource "aws_kms_key_policy" "eks_secrets_policy" {
+  key_id = aws_kms_key.eks_secrets.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "Enable IAM User Permissions"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action   = "kms:*"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+data "aws_caller_identity" "current" {}
+
 # IAM Role for EKS Control Plane
 resource "aws_iam_role" "eks_cluster_role" {
   name = "${var.cluster_name}-role"
