@@ -28,7 +28,7 @@ variable "cluster_name" {
 # KMS Key for EKS Secrets Encryption (Checkov CKV_AWS_58 compliance)
 resource "aws_kms_key" "eks_secrets" {
   description             = "KMS key for EKS envelope encryption of Kubernetes secrets"
-  deletion_window_in_days = 7
+  deletion_window_in_days = 30
   enable_key_rotation     = true
 }
 
